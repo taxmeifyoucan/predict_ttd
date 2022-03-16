@@ -2,7 +2,7 @@
 
 #Step in seconds, data granuality 
 GRAN=3600
-RPC="https://bordel.xyz/"
+RPC="http://127.0.0.1:8545/"
 
 if [ -f "result.csv" ]; 
 then
@@ -44,7 +44,6 @@ echo $TIME  >> result.csv
 if [ $c -lt $(($ROW+$NPOINTS)) ]; then
 NEXT_TS=`printf "%d\n" $(($TIME + $GRAN))`
 NEXT_BN=`printf "%d\n" $(($STEP+$BN))`
-echo $NEXT_TS $NEXT_BN $(($NEXT_BN+10)) $STEP
 BN=`python3 blockbytime.py $NEXT_TS $NEXT_BN $(($NEXT_BN+10))` 
 BN=`printf '%X\n' $BN`
 fi
