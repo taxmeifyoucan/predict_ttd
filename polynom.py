@@ -1,4 +1,3 @@
-#from numpy.polynomial import Polynomial as np
 import numpy as np
 from pandas import read_csv as pd
 import matplotlib.pyplot as plt
@@ -18,6 +17,7 @@ data_train = csv_train[['Row', 'TTD']]
 xt = data['Row']
 yt = data['TTD']
 
+
 degree=3
 diff=1
 step=np.average(np.diff(t))
@@ -29,7 +29,9 @@ plt.scatter(x, y)
 p = np.poly1d(predict)
 plt.plot(x,p(x),"r--")
 
+
 plt.savefig('chart.png')
+
 
 i=0
 while i <= degree:
@@ -37,8 +39,9 @@ while i <= degree:
     if i == degree:
         print("(%.10f)"%(predict[i]))
         break
-    print("(%.10f*(ROW(A2)-1)^%d)+"%(predict[i],degree-i,),end="")
+    print("(%.10f*x^%d)+"%(predict[i],degree-i,),end="")
     i+=1
+
 
 def estimate_ttd(target):
     copy=np.copy(predict)
@@ -50,6 +53,7 @@ def estimate_ttd(target):
         er=(abs(((point - l)*step+t[l])-np.polyval(predict_time,point)))
         mid=(((point - l)*step+t[l])+np.polyval(predict_time,point))/2
         print("TTD of", target, " is expected between",time.ctime(mid-er),"and",time.ctime(mid+er))
+
 
 if (len(sys.argv)) > 1:
     target = int(sys.argv[1])
