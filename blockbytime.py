@@ -2,7 +2,6 @@ from web3 import Web3
 from web3.types import BlockData
 import sys
 
-web3 = Web3(Web3.HTTPProvider("https://bordel.xyz"))
 #web3 = Web3(Web3.IPCProvider("~/.ethereum/geth.ipc"))
 #web3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
 
@@ -32,12 +31,11 @@ def target_block(timestamp, prev=1, next=latest):
     adjustment = block_predicted + blocks_diff
 
     r = abs(blocks_diff)
-
+    
     #tolerance
-    if r <= 1:
+    if r <= 2:
         print(adjustment)
         return(adjustment)
-
     return target_block(timestamp, adjustment - r, adjustment + r)
 
 ts, target = int(sys.argv[1]), int(sys.argv[2])
