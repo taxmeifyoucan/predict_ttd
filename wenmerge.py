@@ -6,13 +6,14 @@ import sys
 import time
 import os.path
 
-web3 = Web3(Web3.HTTPProvider("https://bordel.xyz"))
+#Set your web3 provider
 #web3 = Web3(Web3.IPCProvider("~/.ethereum/geth.ipc"))
 #web3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
 
 T = lambda blockn: web3.eth.getBlock(blockn).timestamp
 latest = web3.eth.get_block('latest')['number']
 
+#Set starting block if result.csv does not exist
 start=14322444
 granuality=3600
 
