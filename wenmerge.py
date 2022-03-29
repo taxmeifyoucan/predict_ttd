@@ -6,13 +6,13 @@ import sys
 import time
 import os.path
 
+web3 = Web3(Web3.HTTPProvider("https://bordel.xyz"))
 #web3 = Web3(Web3.IPCProvider("~/.ethereum/geth.ipc"))
 #web3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
 
 T = lambda blockn: web3.eth.getBlock(blockn).timestamp
 latest = web3.eth.get_block('latest')['number']
 
-#Define starting block if result.csv is not created yet
 start=14322444
 granuality=3600
 
@@ -54,7 +54,7 @@ def update(blockn, step, row):
     block_step=step/13
     i=row
 
-    while i < row+points:
+    while i < int(row+points):
         ttd=int(web3.eth.getBlock(blockn).totalDifficulty / 100000 )
         difficulty=web3.eth.getBlock(blockn).difficulty
         ts=int(web3.eth.getBlock(blockn).timestamp)
@@ -71,7 +71,6 @@ def update(blockn, step, row):
         df = pd.DataFrame(data)
         df.to_csv('result.csv', mode='a', index=False, header=False)
         blockn=block_by_time((ts+step), int(blockn+block_step), int(blockn+block_step+10))
-        print (i, row+points)
         i+=1
 
 #Creates polynomial equation following collected data
