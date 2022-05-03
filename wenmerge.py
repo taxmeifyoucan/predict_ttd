@@ -5,10 +5,14 @@ from web3 import Web3
 import argparse 
 import time
 import os.path
+import warnings
+
+warnings.filterwarnings('ignore')
 
 #Choose web3 provider first, IPC is recommended 
 #web3 = Web3(Web3.IPCProvider("~/.ethereum/geth.ipc"))
 #web3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
+web3 = Web3(Web3.HTTPProvider("https://bordel.xyz"))
 
 #If result.csv is not present, data will be crawled based on these parameters:
 start=14603000 #First block to start with 
