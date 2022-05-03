@@ -12,7 +12,6 @@ warnings.filterwarnings('ignore')
 #Choose web3 provider first, IPC is recommended 
 #web3 = Web3(Web3.IPCProvider("~/.ethereum/geth.ipc"))
 #web3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
-web3 = Web3(Web3.HTTPProvider("https://bordel.xyz"))
 
 #If result.csv is not present, data will be crawled based on these parameters:
 start=14603000 #First block to start with 
@@ -161,7 +160,7 @@ def estimate_ttd(target, polynom_ttd, polynom_time):
         deviation=(abs(((point - l)*time_diff_avg+t[l])-np.polyval(polynom_time,point)))
         mid=(((point - l)*time_diff_avg+t[l])+np.polyval(polynom_time,point))/2
         naive=abs((point-l)*time_diff_avg+t[l] - mid)
-        print("Total Terminal Difficulty of", target, "is expected around ", time.ctime(np.polyval(polynom_time,point)), "i.e. between",time.ctime(mid-deviation),"and",time.ctime(mid+deviation))
+        print("Total Terminal Difficulty of", target, "is expected around", time.ctime(np.polyval(polynom_time,point)), ", i.e. between",time.ctime(mid-deviation),"and",time.ctime(mid+deviation))
 
 #Returns estimated TTD value at given timestamp
 def estimate_time(target, polynom_ttd, polynom_time):
