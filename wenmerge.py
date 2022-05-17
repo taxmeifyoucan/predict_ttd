@@ -2,10 +2,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from web3 import Web3
-import argparse 
 import time
-import os.path
+import os
 import warnings
+from dotenv import load_dotenv
+
+load_dotenv()
 
 warnings.filterwarnings('ignore')
 
@@ -108,6 +110,11 @@ def update(blockn, step, row):
 
 # Creates polynomial equation following collected data
 def construct_polynom():
+    csv = pd.read_csv('./result.csv')
+    data = csv[['Row', 'BlockNumber', 'TTD', 'Difficulty', 'UnixTimestamp']]
+    x = data['Row']
+    y = data['TTD']
+    t = data['UnixTimestamp']
 
     coeff_ttd = np.polyfit(x, y, degree)
     coeff_time = np.polyfit(x, t, degree)
@@ -115,7 +122,7 @@ def construct_polynom():
     plt.scatter(x, y) 
     p = np.poly1d(coeff_ttd)
     plt.plot(x,p(x),"r--")
-    plt.savefig('chart.png')
+    plt.savefig('../../frontend/src/assets/chart.png')
 
     #Print the equation
     '''
@@ -127,14 +134,14 @@ def construct_polynom():
         print("(%.10f*x^%d)+"%(predict[i],degree-i,),end="")
         i+=1
     '''
-    if args['ttd']:
-        target_ttd = int(args['ttd']) / 100000
-        estimate_ttd(target_ttd, coeff_ttd, coeff_time)
-    if args['time']:
-        estimate_time(int(args['time']), coeff_ttd, coeff_time)
+    if 'TTD_TARGET' in os.environ:
+        target_ttd = int(os.environ['TTD_TARGET']) / 100000
+        return(estimate_ttd(target_ttd, coeff_ttd, coeff_time, x, y))
+    if 'TIME_TARGET' in os.environ:
+        estimate_time(int(os.environ['TIME_TARGET']), coeff_ttd, coeff_time)
 
 #Returns estimated time of given TTD value
-def estimate_ttd(target, polynom_ttd, polynom_time):
+def estimate_ttd(target, polynom_ttd, polynom_time, x, y):
     
     #Find x for given y
     appoint=np.copy(polynom_ttd)
@@ -145,19 +152,23 @@ def estimate_ttd(target, polynom_ttd, polynom_time):
     ttd_diff_avg=int(np.average(np.diff(y)))
     time_diff_avg=int(np.average(np.diff(t)))
     current_ttd = web3.eth.get_block('latest')['totalDifficulty']
-    
+    print(point)
+
     if point <= 0 or current_ttd > target * 100000:
         print("TTD of", target, "was achieved at block", block_by_ttd(target*100000, 1, latest_block))
     else:
+
         timeleft=(int(target)*100000-current_ttd)/(ttd_diff_avg*100000)*time_diff_avg
+        print("he1re")
+
         if timeleft < 86400:
             print(time.strftime("Around %Hh%Mm%Ss left \n", time.gmtime(timeleft)))
      
         deviation=(abs(((point - l)*time_diff_avg+t[l])-np.polyval(polynom_time,point)))
         mid=(((point - l)*time_diff_avg+t[l])+np.polyval(polynom_time,point))/2
         naive=abs((point-l)*time_diff_avg+t[l] - mid)
-        print("Total Terminal Difficulty of", target, "is expected around", time.ctime(np.polyval(polynom_time,point)), ", i.e. between",time.ctime(mid-deviation),"and",time.ctime(mid+deviation))
-
+        print("Total Terminal Difficulty of", int(os.environ['TTD_TARGET']), "is expected around", time.ctime(np.polyval(polynom_time,point)), ", i.e. between",time.ctime(mid-deviation),"and",time.ctime(mid+deviation))
+        return np.polyval(polynom_time,point)
 #Returns estimated TTD value at given timestamp
 def estimate_time(target, polynom_ttd, polynom_time):
 
@@ -176,30 +187,20 @@ def estimate_time(target, polynom_ttd, polynom_time):
         print("Total Terminal Difficulty at time", time.ctime(target), " is expected around value", int(np.polyval(polynom_ttd,point)*100000))
 
 
-ap = argparse.ArgumentParser()
-ap.add_argument("--ttd", required=False,
-   help="Total terminal difficulty value to predict")
-
-ap.add_argument("--time", required=False,
-   help="Timestamp to predict")
-
-args = vars(ap.parse_args())
-
-
 if os.path.exists('result.csv'):
     csv = pd.read_csv('./result.csv')
     data = csv[['Row', 'BlockNumber', 'TTD', 'Difficulty', 'UnixTimestamp']]
     b = data['BlockNumber']
     t = data['UnixTimestamp']
     l=int(len(b))-1
-
-    latest = web3.eth.get_block('latest')['timestamp']
     ts_now=int(time.time())
 
     if ( ts_now - t[l]) > granuality:
         next_ts=(t[l]+granuality)
         start_block=block_by_time(next_ts, int(b[l]), latest_block)
         update(start_block, granuality, l+2)
+    '''
+
         csv = pd.read_csv('./result.csv')
         data = csv[['Row', 'BlockNumber', 'TTD', 'Difficulty', 'UnixTimestamp']]
         x = data['Row']
@@ -217,13 +218,13 @@ if os.path.exists('result.csv'):
         b = data['BlockNumber']
         t = data['UnixTimestamp']
         construct_polynom()
+    '''
 else: 
     with open('result.csv', 'a') as file:
         file.write('Row,BlockNumber,TTD,Difficulty,UnixTimestamp\n')
 
     update(start, granuality, 1)
 
-    construct_polynom()
 
 
 

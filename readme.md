@@ -11,23 +11,18 @@ You need Python and pip, first install requirements:
 pip3 install -r requirements.txt
 ```
 
-Before running the script, set your web3 provider on the top of `wenmerge.py`. Repo comes with some collected data, roughly 2 weeks in the past with 30 min step. It gets updated when you run the script to create the latest prediction. 
+Before running the script, set your web3 provider on the top of `wenmerge.py`. Repo comes with some collected data, roughly 4 weeks in the past with 30 min step. It gets updated when you run the script to create the latest prediction. 
 You can set values for starting block and step, delete `result.csv` to collect your own data set. Local node IPC is recommended for this step because the initial data collection can take a while. 
 
-Now you are ready to run the script. There are two options `--ttd`, `--time`. You can use either, both or neither to just get the data updated. 
-```
-python3 wenmerge.py --ttd <value to predict>
-```
-Output gives you rough time estimate when this TTD will be reached:
+With code refactor for API model, cli flags were deprecated. Targets to predict are now determined by the `.env` file. 
+If you get it succesfully running and then run into error, just restart and you will get the right result. Here is an example of terminal output: 
+
 ```
 Updating data at block 14680227 #gets the latest data from the network 
 Around 05d18h19m49s left 
 
 Total Terminal Difficulty of 4.805e+17 is expected around  Wed May 4 21:26:52 2022 i.e. between Wed May 4 21:03:08 2022 and Wed May 4 22:38:05 2022
 ```
-If you want to know what TTD value will be there at certain point in time, use a unix timestamp: 
-```
-python3 wenmerge.py --time <timestamp>
-```
 
+API is served on localhost:5000/prediction. 
 
