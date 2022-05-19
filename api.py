@@ -14,9 +14,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-target=(int(os.environ['TTD_TARGET']))
 
-prediction=time.ctime(construct_polynom())
+if 'TTD_TARGET' in os.environ:
+	prediction=time.ctime(construct_polynom('1'))
+	target=(int(os.environ['TTD_TARGET']))
+if 'TIME_TARGET' in os.environ:
+	prediction=time.ctime(construct_polynom('0'))
+	target=(int(os.environ['TIME_TARGET']))
+
+
 
 @app.get("/prediction")
 async def predicted_value():

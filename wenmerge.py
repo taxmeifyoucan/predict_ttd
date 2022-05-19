@@ -1,7 +1,9 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.dates as md
 from web3 import Web3
+import datetime as dt
 import time
 import os
 import warnings
@@ -10,6 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 warnings.filterwarnings('ignore')
+web3 = Web3(Web3.IPCProvider("/home/mario/.ethereum/ropsten/geth.ipc"))
 
 #Choose web3 provider first, IPC is recommended 
 #web3 = Web3(Web3.IPCProvider("~/.ethereum/geth.ipc"))
@@ -56,6 +59,7 @@ def block_by_time(timestamp, prev, next):
 # Returns block closest to given TTD value
 def block_by_ttd(ttd, prev, next):
     prev = max(1, prev)
+    prev=min(prev, latest_block)
     next = min(latest_block, next)
 
     if prev == next:
@@ -79,6 +83,44 @@ def block_by_ttd(ttd, prev, next):
         return(adjustment)
 
     return block_by_ttd(ttd, adjustment - r, adjustment + r)
+
+def draw_chart(target_t, target_y, y, t, poly_h, poly_l):
+   
+    ph = np.poly1d(poly_h)
+    pl = np.poly1d(poly_l)
+    p = np.poly1d(np.polyfit(t, y, degree))
+
+    timestamps=np.copy(t)
+
+    time_diff_avg=int(np.average(np.diff(t)))
+    i=(target_t-t[int(len(t)-1)])/time_diff_avg + int(len(t))/10 
+    j=int(len(timestamps))
+
+    while i > 0:
+        timestamps[j]=10
+        timestamps[j]=(timestamps[j-1]+time_diff_avg)
+        j+=1
+        i-=1
+    
+    conv=np.vectorize(dt.datetime.fromtimestamp) 
+    short_dates=conv(t)
+    long_dates=conv(timestamps)
+    target_t=conv(target_t)
+    
+    plt.subplots_adjust(bottom=0.2)
+    plt.xticks( rotation=25 )
+    ax=plt.gca()
+    xfmt = md.DateFormatter('%Y-%m-%d')
+    ax.xaxis.set_major_formatter(xfmt)
+
+    plt.plot(long_dates,p(long_dates), color='red', linestyle='dashed')
+    plt.plot(long_dates,ph(long_dates), color='purple', linestyle='dashed')
+    plt.plot(long_dates,pl(long_dates), color='purple', linestyle='dashed')
+
+    plt.scatter(short_dates, y) 
+    plt.plot(target_t,target_y/100000,'ro', color='green') 
+    plt.savefig('../../frontend/src/assets/chart.png')
+   # plt.show()
 
 # Updates data set with latest blocks
 def update(blockn, step, row):
@@ -109,20 +151,40 @@ def update(blockn, step, row):
         i+=1
 
 # Creates polynomial equation following collected data
-def construct_polynom():
+def construct_polynom(switch):
     csv = pd.read_csv('./result.csv')
     data = csv[['Row', 'BlockNumber', 'TTD', 'Difficulty', 'UnixTimestamp']]
     x = data['Row']
     y = data['TTD']
     t = data['UnixTimestamp']
 
-    coeff_ttd = np.polyfit(x, y, degree)
+    coeff_ttd = np.polyfit(t, y, degree)
     coeff_time = np.polyfit(x, t, degree)
+
+
+    #Errors 
+    err_h=[]
+    err_l=[]
+    err=[]
+    for i in range(l+1):
+        diff=abs(np.polyval(coeff_ttd,int(t[i]))-y[i])
+        err.append(diff**2)
+        err_h.append(diff+y[i])
+        err_l.append(y[i]-diff)
     
-    plt.scatter(x, y) 
-    p = np.poly1d(coeff_ttd)
-    plt.plot(x,p(x),"r--")
-    plt.savefig('../../frontend/src/assets/chart.png')
+    coeff_h=np.polyfit(t,err_h,degree)
+    coeff_l=np.polyfit(t,err_l,degree)
+
+    #Mean squared err
+    MSE=np.average(err)
+    #print("MSE: ", MSE)
+
+    #Training split
+    train_size=int(l*0.75)
+    t_train=t[0:train_size]
+    y_train=y[0:train_size]
+
+    coeff_train = np.polyfit(t_train, y_train, degree)
 
     #Print the equation
     '''
@@ -134,57 +196,63 @@ def construct_polynom():
         print("(%.10f*x^%d)+"%(predict[i],degree-i,),end="")
         i+=1
     '''
-    if 'TTD_TARGET' in os.environ:
+    if int(switch) == 1:
         target_ttd = int(os.environ['TTD_TARGET']) / 100000
-        return(estimate_ttd(target_ttd, coeff_ttd, coeff_time, x, y))
-    if 'TIME_TARGET' in os.environ:
-        estimate_time(int(os.environ['TIME_TARGET']), coeff_ttd, coeff_time)
+        return(estimate_ttd(target_ttd, coeff_ttd, coeff_time, x, y, coeff_h, coeff_l ))
+    elif 'TIME_TARGET' in os.environ:
+        estimate_time(int(os.environ['TIME_TARGET']), coeff_ttd, coeff_h, coeff_l, y)
 
 #Returns estimated time of given TTD value
-def estimate_ttd(target, polynom_ttd, polynom_time, x, y):
+def estimate_ttd(target, polynom_ttd, polynom_time, x, y, coeff_h, coeff_l):
     
     #Find x for given y
-    appoint=np.copy(polynom_ttd)
-    appoint[-1] -= target
-    point=int((np.roots(appoint)[degree-1]))
+
+    substitute=np.copy(polynom_ttd)
+    substitute[-1] -= target
+    point=int(max(np.roots(substitute)))
+
+
+    substitute=np.copy(coeff_h)
+    substitute[-1] -= target
+    point_high=int(max(np.roots(substitute)))
+
+
+    substitute=np.copy(coeff_l)
+    substitute[-1] -= target
+    point_low=int(max(np.roots(substitute)))
+
 
     #Calculated averages from data
     ttd_diff_avg=int(np.average(np.diff(y)))
     time_diff_avg=int(np.average(np.diff(t)))
     current_ttd = web3.eth.get_block('latest')['totalDifficulty']
-    print(point)
+
+    draw_chart(point,int(os.environ['TTD_TARGET']),y,t,coeff_h, coeff_l)
 
     if point <= 0 or current_ttd > target * 100000:
         print("TTD of", target, "was achieved at block", block_by_ttd(target*100000, 1, latest_block))
     else:
-
         timeleft=(int(target)*100000-current_ttd)/(ttd_diff_avg*100000)*time_diff_avg
-        print("he1re")
+        if timeleft < 259200:
+            print("Around", dt.timedelta(seconds =timeleft), "left")
 
-        if timeleft < 86400:
-            print(time.strftime("Around %Hh%Mm%Ss left \n", time.gmtime(timeleft)))
-     
-        deviation=(abs(((point - l)*time_diff_avg+t[l])-np.polyval(polynom_time,point)))
-        mid=(((point - l)*time_diff_avg+t[l])+np.polyval(polynom_time,point))/2
-        naive=abs((point-l)*time_diff_avg+t[l] - mid)
-        print("Total Terminal Difficulty of", int(os.environ['TTD_TARGET']), "is expected around", time.ctime(np.polyval(polynom_time,point)), ", i.e. between",time.ctime(mid-deviation),"and",time.ctime(mid+deviation))
-        return np.polyval(polynom_time,point)
+        print("Total Terminal Difficulty of", int(os.environ['TTD_TARGET']), "is expected around", time.ctime(point), ", i.e. between", time.ctime(point_low),"and", time.ctime(point_high))
+
+        return time.ctime(point)
+
 #Returns estimated TTD value at given timestamp
-def estimate_time(target, polynom_ttd, polynom_time):
+def estimate_time(target, polynom_ttd, coeff_h, coeff_l, y):
 
-    appoint=np.copy(polynom_time)
-    appoint[-1] -= target
-    point=int((np.roots(appoint)[degree-1]))
-    step=int(np.average(np.diff(y)))
+    point=target
+
+    draw_chart(int(os.environ['TIME_TARGET']), int(np.polyval(polynom_ttd,point)*100000),y,t,coeff_h, coeff_l)
 
     #some edgecases to handle here, crazy timestamp values will run into error
     if point <= l:
-        print("Time of", target, "was achieved at", time.ctime(t[point]), "block", block_by_ttd(target*100000, int(b[point]), int(b[point]+30)))
+        print("Time of", target, "was achieved at", time.ctime(t[point]), "block", block_by_ttd(target*100000, int(b[point]), int(b[point]+1)))
     else:
-        deviation=(abs(((point - l)*step+y[l])-np.polyval(polynom_ttd,point)))
-        mid=(((point - l)*step+y[l])+np.polyval(polynom_ttd,point))/2
      
-        print("Total Terminal Difficulty at time", time.ctime(target), " is expected around value", int(np.polyval(polynom_ttd,point)*100000))
+        print("Total Terminal Difficulty at time", time.ctime(target), "UTC is expected around value", int(np.polyval(polynom_ttd,point)))
 
 
 if os.path.exists('result.csv'):
