@@ -12,7 +12,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 warnings.filterwarnings('ignore')
-web3 = Web3(Web3.IPCProvider("/home/mario/.ethereum/ropsten/geth.ipc"))
 
 #Choose web3 provider first, IPC is recommended 
 #web3 = Web3(Web3.IPCProvider("~/.ethereum/geth.ipc"))
