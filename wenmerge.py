@@ -18,22 +18,27 @@ web3 = Web3(Web3.IPCProvider("/home/mario/.ethereum/ropsten/geth.ipc"))
 #web3 = Web3(Web3.IPCProvider("~/.ethereum/geth.ipc"))
 #web3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
 
-#If result.csv is not present, data will be crawled based on these parameters:
-start=14603000 #First block to start with 
-granuality=1800 #Step in seconds
-degree=2 #Degree of polynomials
-
 T = lambda blockn: web3.eth.getBlock(blockn).timestamp
 TTD = lambda blockn: web3.eth.getBlock(blockn).totalDifficulty
 latest_block = web3.eth.get_block('latest')['number']
 
+#If result.csv is not present, data will be crawled based on these parameters:
+start=int(latest_block-(50000)) #First block to start with 
+granuality=1800 #Step in seconds
+degree=2 #Degree of polynomials
+tolerance = counter = 1
 
 # Binary search which finds block closest to given timestamp
 def block_by_time(timestamp, prev, next):
+    global counter
+    global tolerance
+
     prev = max(1, prev)
     next = min(latest_block, next)
 
     if prev == next:
+        counter=0
+        tolerance=0       
         return prev
 
     t0, t1 = T(prev), T(next)
@@ -50,9 +55,12 @@ def block_by_time(timestamp, prev, next):
     r = abs(blocks_diff)
     
     #tolerance
-    if r <= 2:
+    if r <= tolerance:
         return(adjustment)
 
+    counter +=1
+    if counter > 10:
+        tolerance+=1
     return block_by_time(timestamp, adjustment - r, adjustment + r)
 
 
@@ -63,6 +71,8 @@ def block_by_ttd(ttd, prev, next):
     next = min(latest_block, next)
 
     if prev == next:
+        counter=0
+        tolerance=0  
         return prev
 
     t0, t1 = TTD(prev), TTD(next)
@@ -78,9 +88,13 @@ def block_by_ttd(ttd, prev, next):
     adjustment = block_predicted + blocks_diff
 
     r = abs(blocks_diff)
-    
-    if r <= 1:
+
+    if r <= tolerance:
         return(adjustment)
+
+    counter +=1
+    if counter > 10:
+        tolerance+=1
 
     return block_by_ttd(ttd, adjustment - r, adjustment + r)
 
@@ -94,17 +108,15 @@ def draw_chart(target_t, target_y, y, t, poly_h, poly_l):
 
     time_diff_avg=int(np.average(np.diff(t)))
     i=(target_t-t[int(len(t)-1)])/time_diff_avg + int(len(t))/10 
-    j=int(len(timestamps))
-
+    j=int(len(t))
     while i > 0:
-        timestamps[j]=10
-        timestamps[j]=(timestamps[j-1]+time_diff_avg)
+        t[j]=t[j-1]+time_diff_avg
         j+=1
         i-=1
     
     conv=np.vectorize(dt.datetime.fromtimestamp) 
-    short_dates=conv(t)
-    long_dates=conv(timestamps)
+    long_dates=conv(t)
+    short_dates=conv(timestamps)
     target_t=conv(target_t)
     
     plt.subplots_adjust(bottom=0.2)
@@ -112,15 +124,15 @@ def draw_chart(target_t, target_y, y, t, poly_h, poly_l):
     ax=plt.gca()
     xfmt = md.DateFormatter('%Y-%m-%d')
     ax.xaxis.set_major_formatter(xfmt)
-
-    plt.plot(long_dates,p(long_dates), color='red', linestyle='dashed')
-    plt.plot(long_dates,ph(long_dates), color='purple', linestyle='dashed')
-    plt.plot(long_dates,pl(long_dates), color='purple', linestyle='dashed')
+    plt.plot(long_dates,p(t), color='red', linestyle='dashed')
+    plt.plot(long_dates,ph(t), color='purple', linestyle='dashed')
+    plt.plot(long_dates,pl(t), color='purple', linestyle='dashed')
 
     plt.scatter(short_dates, y) 
     plt.plot(target_t,target_y/100000,'ro', color='green') 
-    plt.savefig('../../frontend/src/assets/chart.png')
+    plt.savefig('chart.png')
    # plt.show()
+
 
 # Updates data set with latest blocks
 def update(blockn, step, row):
@@ -147,7 +159,10 @@ def update(blockn, step, row):
 
         df = pd.DataFrame(data)
         df.to_csv('result.csv', mode='a', index=False, header=False)
-        blockn=block_by_time((ts+step), int(blockn+block_step), int(latest_block))
+
+        next = min(latest_block, int(blockn+block_step))
+
+        blockn=block_by_time((ts+step), next, latest_block)
         i+=1
 
 # Creates polynomial equation following collected data
@@ -175,7 +190,7 @@ def construct_polynom(switch):
     coeff_h=np.polyfit(t,err_h,degree)
     coeff_l=np.polyfit(t,err_l,degree)
 
-    #Mean squared err
+    #Mean squared error
     MSE=np.average(err)
     #print("MSE: ", MSE)
 
