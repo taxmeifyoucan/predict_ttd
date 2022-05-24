@@ -2,6 +2,8 @@
 
 Total Terminal Difficulty is an accumulated sum of miner work done at each block. [The Merge](https://ethereum.org/en/upgrades/merge/) will happen with certain value of TTD. This tool makes it easier to predict when network reaches certain TTD. 
 
+Checkout article on TTD prediction to get a better understanding of this repo: https://notes.ethereum.org/@MarioHavel/predicting_ttd
+
 Still WIP, precision might be improved, edge cases handled and frontend for presenting prediction to wider community can be created based on this. Program collects data on accumulated difficulty with precise points in time and naively estimates future TTD with linear regression. Keep in mind that further in the future your prediction is, the bigger error there will be. 
 
 ## Usage
