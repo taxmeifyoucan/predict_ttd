@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 warnings.filterwarnings('ignore')
+web3 = Web3(Web3.IPCProvider("/home/mario/.ethereum/ropsten/geth.ipc"))
 
 #Choose web3 provider first, IPC is recommended 
 #web3 = Web3(Web3.IPCProvider("~/.ethereum/geth.ipc"))
@@ -164,6 +165,29 @@ def update(blockn, step, row):
         blockn=block_by_time((ts+step), next, latest_block)
         i+=1
 
+def estimate_hashrate(data):
+
+    d=data['Difficulty']
+    t = data['UnixTimestamp']
+    y = data['TTD']
+    current_ttd = web3.eth.get_block('latest')['totalDifficulty']
+    target=43531756765713534
+    time_now=web3.eth.get_block('latest')['timestamp']
+    time_target=1654706871
+
+
+
+    n=1
+    ttd_diff_avg=int(np.average(np.diff(y[n:])))
+    time_diff_avg=int(np.average(np.diff(t[n:])))
+
+    hashrate=(ttd_diff_avg*100000/time_diff_avg/1000000)
+    print(hashrate)
+    hash_target=((target-current_ttd)/(time_target-time_now)/1000000)
+    print(hash_target)
+
+
+
 # Creates polynomial equation following collected data
 def construct_polynom(switch):
     csv = pd.read_csv('./result.csv')
@@ -280,6 +304,8 @@ if os.path.exists('result.csv'):
     if ( ts_now - t[l]) > granuality:
         next_ts=(t[l]+granuality)
         start_block=block_by_time(next_ts, int(b[l]), latest_block)
+        estimate_hashrate(data)
+
         update(start_block, granuality, l+2)
     '''
 
