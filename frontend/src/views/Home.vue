@@ -2,7 +2,7 @@
   <div>
     <h2> Ropsten TTD predictions </h2>
     <p><a href=https://github.com/taxmeifyoucan/predict_ttd/>Contribute and make your own prediction</a></p>
-    <p>Total Terminal Difficulty of {{ target }} is expected around {{ msg }}</p>
+    <p>Total Terminal Difficulty of {{ target }}is expected around {{ msg }}</p>
     <img src="../assets/chart.png" alt="">
 
   </div>
@@ -12,14 +12,15 @@
 import axios from 'axios';
 
 export default {
-  name: 'Ping',
+  name: 'Update',
   data() {
     return {
       msg: '',
+      target: '',
     };
   },
   methods: {
-    getMessage() {
+    getPredict() {
       axios.get('/prediction')
         .then((res) => {
           this.msg = res.data;
@@ -28,9 +29,20 @@ export default {
           console.error(error);
         });
     },
+    getTarget() {
+      axios.get('/target')
+        .then((res) => {
+          this.target = res.data;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
   },
   created() {
-    this.getMessage();
+    this.getPredict();
+    this.getTarget();
+
   },
 };
 </script>
