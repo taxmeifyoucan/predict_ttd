@@ -218,9 +218,6 @@ def estimate_hashrate(data):
     hash_target=((target-current_ttd)/(time_target-time_now)/1000000)
     print("To achieve TTD", target, "at", time.ctime(time_target),"around", int(hash_target), "MH/s in network is needed <p></p>")
 
-
-
-
 def draw_chart(target_t, target_y, y, t, predict_err, predictm):
     c = np.poly1d(predict_err)
     h = np.poly1d(predictm)
@@ -283,8 +280,9 @@ def estimate_ttd(target, polynom_ttd, polynom_time, predict_err, predict_m):
     if point <= 0 or currenttd > target * 100000:
         print("TTD of", target, "was achieved at block", block_by_ttd(target*100000, 1, latest_block))
     else:
-        timeleft=(int(target)*100000-currenttd)/(ttd_diff_avg*100000)*time_diff_avg     
-        mid=(((point - l)*time_diff_avg+t[l])+np.polyval(polynom_time,point))/2
+        timeleft=(int(target)*100000-currenttd)/(ttd_diff_avg*100000)*time_diff_avg 
+        if timeleft < 10000:
+            print("Around", dt.timedelta(seconds =timeleft), "left")    
         print("Total Terminal Difficulty of", int(args['ttd']), "is expected around", time.ctime(point), ", i.e. between", time.ctime(point1),"and", time.ctime(point2), "<p></p>")
         estimate_hashrate(data)
         print("Current TTD is", currenttd,"and using latest data lineary, around", datetime.timedelta(seconds =int(timeleft)), "is left to achieve the target.")
