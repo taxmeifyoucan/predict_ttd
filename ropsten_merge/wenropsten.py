@@ -19,7 +19,7 @@ warnings.filterwarnings('ignore')
 
 #Choose web3 provider first, IPC is recommended 
 #web3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
-#web3 = Web3(Web3.WebsocketProvider("wss://ropsten.infura.io/ws/v3/411d3808c2c145cc8d1057161f84329c"))
+web3 = Web3(Web3.IPCProvider("/home/mario/.ethereum/ropsten/geth.ipc"))
 
 #If result.csv is not present, data will be crawled based on these parameters:
 start=12130000 #First block to start with 
