@@ -20,7 +20,7 @@ web3 = Web3(Web3.IPCProvider("/home/mario/.ethereum/ropsten/geth.ipc"))
 
 #Choose web3 provider first, IPC is recommended 
 #web3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
-#web3 = Web3(Web3.WebsocketProvider("wss://ropsten.infura.io/ws/v3/411d3808c2c145cc8d1057161f84329c"))
+web3 = Web3(Web3.WebsocketProvider("wss://ropsten.infura.io/ws/v3/411d3808c2c145cc8d1057161f84329c"))
 
 #If result.csv is not present, data will be crawled based on these parameters:
 start=12338693 #First block to start with 
@@ -29,7 +29,7 @@ granuality=300 #Step in seconds
 T = lambda blockn: web3.eth.getBlock(blockn).timestamp
 TTD = lambda blockn: web3.eth.getBlock(blockn).totalDifficulty
 latest_block = web3.eth.get_block('latest')['number']
-degree=3
+degree=2
 tolerance=1
 counter=0
 # Binary search which finds block closest to given timestamp
@@ -203,7 +203,7 @@ def estimate_hashrate(data):
 
     plt.subplots_adjust(bottom=0.2)
     plt.xticks( rotation=25 )
-    xfmt = md.DateFormatter('%Y-%m-%d')
+    xfmt = md.DateFormatter('%Y-%m-%d %H:%M')
     ax.xaxis.set_major_formatter(xfmt)
     plt.title("Ropsten hashrate")
     ax.set_ylabel('GH/s')
@@ -306,7 +306,7 @@ def estimate_time(target, polynom_ttd, polynom_time, predict_err, predict_m):
     currenttd = web3.eth.get_block('latest')['totalDifficulty']
     timeleft=(50000000000000000-currenttd)/(ttd_diff_avg*100000)*time_diff_avg     
     if timeleft < 7200:
-        print("Around", dt.timedelta(seconds =int(timeleft)), "left </p>")    
+        print("<p>Around", dt.timedelta(seconds =int(timeleft)), "left </p>")    
 
 
     #some edgecases to handle here, crazy timestamp values will run into error

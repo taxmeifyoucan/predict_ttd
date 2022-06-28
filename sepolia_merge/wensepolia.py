@@ -18,8 +18,6 @@ warnings.filterwarnings('ignore')
 
 
 #Choose web3 provider first, IPC is recommended 
-#web3 = Web3(Web3.HTTPProvider("https://rpc.sepolia.org/"))
-#web3 = Web3(Web3.WebsocketProvider("wss://ropsten.infura.io/ws/v3/411d3808c2c145cc8d1057161f84329c"))
 web3 = Web3(Web3.IPCProvider("/home/mario/.ethereum/sepolia/geth.ipc"))
 
 #If result.csv is not present, data will be crawled based on these parameters:

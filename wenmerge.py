@@ -186,8 +186,6 @@ def estimate_hashrate(data):
     hash_target=((target-current_ttd)/(time_target-time_now)/1000000)
     print(hash_target)
 
-
-
 # Creates polynomial equation following collected data
 def construct_polynom(switch):
     csv = pd.read_csv('./result.csv')
@@ -239,6 +237,8 @@ def construct_polynom(switch):
         return(estimate_ttd(target_ttd, coeff_ttd, coeff_time, x, y, coeff_h, coeff_l ))
     elif 'TIME_TARGET' in os.environ:
         estimate_time(int(os.environ['TIME_TARGET']), coeff_ttd, coeff_h, coeff_l, y)
+
+        
 
 #Returns estimated time of given TTD value
 def estimate_ttd(target, polynom_ttd, polynom_time, x, y, coeff_h, coeff_l):
