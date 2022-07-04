@@ -5,7 +5,8 @@ import time
 import datetime as dt
   
 #Choose web3 provider, use IPC especially for a lot of blocks in the past
-web3 = Web3(Web3.IPCProvider("/home/mario/.ethereum/sepolia/geth.ipc"))
+#web3 = Web3(Web3.HTTPProvider("https://rpc.sepolia.org/"))
+web3 = Web3(Web3.IPCProvider("~/.ethereum/sepolia/geth.ipc"))
 
 T = lambda blockn: web3.eth.getBlock(blockn).timestamp
 TTD = lambda blockn: web3.eth.getBlock(blockn).totalDifficulty
@@ -13,7 +14,6 @@ D = lambda blockn: web3.eth.getBlock(blockn).difficulty
 
 #Choose values to predict
 target_ttd=17000000000000000
-target_time=1656936000 #4 july
 past_blocks=100 #n of blocks in the past to calculate with
 latest_block = web3.eth.get_block('latest')['number']
 
@@ -63,4 +63,4 @@ while timeleft > 0:
         latest_block=latest
         print("Block", latest)
         timeleft=hashrate()
-    time.sleep(0.5)
+    time.sleep(1)
