@@ -48,9 +48,11 @@ def hashrate():
 
     avg_hashrate=(ttd_avg/time_avg/1000000000)
     print("Recent hashrate in past", past_blocks,"blocks is %f GH/s" % avg_hashrate)
-    timeleft=int(((target_ttd-latest_ttd)/(ttd_avg))*time_avg)
-    if timeleft < 7200:
-        print("Around", dt.timedelta(seconds =int(timeleft)), "left")    
+    timeleft=int(((target_ttd-latest_ttd)/(ttd_avg))*time_avg)    
+    if timeleft < 0:
+        print ("TTD achieved!")
+    elif timeleft < 7200:
+        print("Around", dt.timedelta(seconds =int(timeleft)), "left") 
     return timeleft
 
 timeleft=hashrate()
