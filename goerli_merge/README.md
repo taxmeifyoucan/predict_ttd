@@ -1,7 +1,5 @@
 ## Goerli Merge prediction
 
-Verifying proposed TTD https://github.com/ethereum/execution-specs/pull/563
-
 Goerli is a PoA network which allows easy linear prediction. Purpose is to [verify proposed TTD value](https://github.com/ethereum/execution-specs/pull/563). This directory contents code tweaked for Goerli and collected data. 
 
 Current prediction fits proposed value: 
