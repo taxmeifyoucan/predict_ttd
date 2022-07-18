@@ -6,8 +6,7 @@ Current prediction fits proposed value:
 
 ![](./chart.png)
 ```
-Total Terminal Difficulty of 10790000 is expected around Thu Aug 11 01:00:00 2022 UTC. <p></p>
-
+Total Terminal Difficulty of 10790000 is expected around Thu Aug 11 01:00:00 2022 UTC.
 ```
 You can verify it by running: 
 
