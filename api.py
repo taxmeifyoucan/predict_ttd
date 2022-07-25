@@ -16,10 +16,10 @@ app.add_middleware(
 
 
 if 'TTD_TARGET' in os.environ:
-	prediction=time.ctime(construct_polynom(1))
+	prediction=time.ctime(construct_polynom())
 	target=(int(os.environ['TTD_TARGET']))
 if 'TIME_TARGET' in os.environ:
-	prediction=time.ctime(construct_polynom('0'))
+	prediction=time.ctime(construct_polynom())
 	target=(int(os.environ['TIME_TARGET']))
 
 

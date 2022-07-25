@@ -7,23 +7,24 @@ import datetime as dt
 import time
 import os
 import warnings
+import argparse 
 from dotenv import load_dotenv
 
 load_dotenv()
 
 warnings.filterwarnings('ignore')
-web3 = Web3(Web3.IPCProvider("/home/mario/.ethereum/ropsten/geth.ipc"))
 
 #Choose web3 provider first, IPC is recommended 
 #web3 = Web3(Web3.IPCProvider("~/.ethereum/geth.ipc"))
 #web3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
+web3 = Web3(Web3.WebsocketProvider("wss://mainnet.infura.io/ws/v3/411d3808c2c145cc8d1057161f84329c"))
 
 T = lambda blockn: web3.eth.getBlock(blockn).timestamp
 TTD = lambda blockn: web3.eth.getBlock(blockn).totalDifficulty
 latest_block = web3.eth.get_block('latest')['number']
 
 #If result.csv is not present, data will be crawled based on these parameters:
-start=int(latest_block-(50000)) #First block to start with 
+start=int(latest_block-(10000)) #First block to start with 
 granuality=1800 #Step in seconds
 degree=2 #Degree of polynomials
 tolerance = counter = 1
@@ -66,6 +67,9 @@ def block_by_time(timestamp, prev, next):
 
 # Returns block closest to given TTD value
 def block_by_ttd(ttd, prev, next):
+    global counter
+    global tolerance
+
     prev = max(1, prev)
     prev=min(prev, latest_block)
     next = min(latest_block, next)
@@ -124,12 +128,13 @@ def draw_chart(target_t, target_y, y, t, poly_h, poly_l):
     ax=plt.gca()
     xfmt = md.DateFormatter('%Y-%m-%d')
     ax.xaxis.set_major_formatter(xfmt)
+    plt.title("TTD")
     plt.plot(long_dates,p(t), color='red', linestyle='dashed')
     plt.plot(long_dates,ph(t), color='purple', linestyle='dashed')
     plt.plot(long_dates,pl(t), color='purple', linestyle='dashed')
 
     plt.scatter(short_dates, y) 
-    plt.plot(target_t,target_y/100000,'ro', color='green') 
+    plt.plot(target_t,target_y/10000,'ro', color='green') 
     plt.savefig('chart.png')
    # plt.show()
 
@@ -144,7 +149,7 @@ def update(blockn, step, row):
     i=row
 
     while i < int(row+points):
-        ttd=int(web3.eth.getBlock(blockn).totalDifficulty / 100000 )
+        ttd=int(web3.eth.getBlock(blockn).totalDifficulty / 10000 )
         difficulty=web3.eth.getBlock(blockn).difficulty
         ts=int(web3.eth.getBlock(blockn).timestamp)
 
@@ -165,38 +170,60 @@ def update(blockn, step, row):
         blockn=block_by_time((ts+step), next, latest_block)
         i+=1
 
-def estimate_hashrate(data):
+def estimate_hashrate(data, target, time_target):
 
-    d=data['Difficulty']
+    d=[]
     t = data['UnixTimestamp']
     y = data['TTD']
+    l=int(len(y))-1
+
     current_ttd = web3.eth.get_block('latest')['totalDifficulty']
-    target=43531756765713534
     time_now=web3.eth.get_block('latest')['timestamp']
-    time_target=1654706871
 
+    i=1
+    while i < l:
+        i+=1
+        d.append(int ((y[i]-y[i-1]) / (t[i]-t[i-1]))/10000)
 
+    conv=np.vectorize(dt.datetime.fromtimestamp) 
+    dates=conv(t)
 
-    n=1
+    ax=plt.gca()
+    ax.clear() 
+
+    plt.subplots_adjust(bottom=0.2)
+    plt.xticks( rotation=25 )
+    xfmt = md.DateFormatter('%Y-%m-%d')
+    ax.xaxis.set_major_formatter(xfmt)
+    plt.title("Hashrate")
+    ax.set_ylabel('TH/s')
+    plt.scatter(dates[1:l], d) 
+    plt.plot(dates[1:l], d) 
+
+    plt.savefig('hashrate.png')
+    plt.clf()
+    n=int(len(y))-3
     ttd_diff_avg=int(np.average(np.diff(y[n:])))
     time_diff_avg=int(np.average(np.diff(t[n:])))
 
-    hashrate=(ttd_diff_avg*100000/time_diff_avg/1000000)
-    print(hashrate)
-    hash_target=((target-current_ttd)/(time_target-time_now)/1000000)
-    print(hash_target)
+    hashrate=(ttd_diff_avg*10000/time_diff_avg/1000000000000)
+    print("Current hashrate: %.2f" % hashrate, "TH/s")
+    hash_target=((target-current_ttd)/(time_target-time_now)/1000000000000)
+    print("To achieve TTD", target, "at", time.ctime(time_target),"UTC, around %.2f TH/s in the network is needed as of now." % hash_target)
+
 
 # Creates polynomial equation following collected data
-def construct_polynom(switch):
+def construct_polynom():
+
     csv = pd.read_csv('./result.csv')
     data = csv[['Row', 'BlockNumber', 'TTD', 'Difficulty', 'UnixTimestamp']]
     x = data['Row']
     y = data['TTD']
     t = data['UnixTimestamp']
+    l=int(len(x))-1
 
     coeff_ttd = np.polyfit(t, y, degree)
     coeff_time = np.polyfit(x, t, degree)
-
 
     #Errors 
     err_h=[]
@@ -232,31 +259,36 @@ def construct_polynom(switch):
         print("(%.10f*x^%d)+"%(predict[i],degree-i,),end="")
         i+=1
     '''
-    if int(switch) == 1:
-        target_ttd = int(os.environ['TTD_TARGET']) / 100000
-        return(estimate_ttd(target_ttd, coeff_ttd, coeff_time, x, y, coeff_h, coeff_l ))
-    elif 'TIME_TARGET' in os.environ:
-        estimate_time(int(os.environ['TIME_TARGET']), coeff_ttd, coeff_h, coeff_l, y)
 
+    if args['ttd']:
+        target_ttd = int(args['ttd'])
+        estimate_hashrate(data, target_ttd, int(args['time']))
+        return(estimate_ttd(target_ttd, coeff_ttd, coeff_time, x, y, coeff_h, coeff_l ))
+        
+    elif 'TTD_TARGET' in os.environ:
+        target_ttd = int(os.environ['TTD_TARGET']) / 10000
+        estimate_hashrate(data, target_ttd, int(os.environ['TIME_TARGET']))
+        return(estimate_ttd(target_ttd, coeff_ttd, coeff_time, x, y, coeff_h, coeff_l ))
         
 
 #Returns estimated time of given TTD value
 def estimate_ttd(target, polynom_ttd, polynom_time, x, y, coeff_h, coeff_l):
     
+    ttd_target=target/10000
     #Find x for given y
 
     substitute=np.copy(polynom_ttd)
-    substitute[-1] -= target
+    substitute[-1] -= ttd_target
     point=int(max(np.roots(substitute)))
 
 
     substitute=np.copy(coeff_h)
-    substitute[-1] -= target
+    substitute[-1] -= ttd_target
     point_high=int(max(np.roots(substitute)))
 
 
     substitute=np.copy(coeff_l)
-    substitute[-1] -= target
+    substitute[-1] -= ttd_target
     point_low=int(max(np.roots(substitute)))
 
 
@@ -265,16 +297,16 @@ def estimate_ttd(target, polynom_ttd, polynom_time, x, y, coeff_h, coeff_l):
     time_diff_avg=int(np.average(np.diff(t)))
     current_ttd = web3.eth.get_block('latest')['totalDifficulty']
 
-    draw_chart(point,int(os.environ['TTD_TARGET']),y,t,coeff_h, coeff_l)
+    draw_chart(point,target,y,t,coeff_h, coeff_l)
 
-    if point <= 0 or current_ttd > target * 100000:
-        print("TTD of", target, "was achieved at block", block_by_ttd(target*100000, 1, latest_block))
+    if point <= 0 or current_ttd > target:
+        print("TTD of", target, "was achieved at block", block_by_ttd(target*10000, 1, latest_block))
     else:
-        timeleft=(int(target)*100000-current_ttd)/(ttd_diff_avg*100000)*time_diff_avg
+        timeleft=(int(target)*10000-current_ttd)/(ttd_diff_avg*10000)*time_diff_avg
         if timeleft < 259200:
             print("Around", dt.timedelta(seconds =timeleft), "left")
 
-        print("Total Terminal Difficulty of", int(os.environ['TTD_TARGET']), "is expected around", time.ctime(point), ", i.e. between", time.ctime(point_low),"and", time.ctime(point_high))
+        print("Total Terminal Difficulty of", int(target*10000), "is expected around", time.ctime(point), ", i.e. between", time.ctime(point_low),"and", time.ctime(point_high))
 
         return time.ctime(point)
 
@@ -283,14 +315,24 @@ def estimate_time(target, polynom_ttd, coeff_h, coeff_l, y):
 
     point=target
 
-    draw_chart(int(os.environ['TIME_TARGET']), int(np.polyval(polynom_ttd,point)*100000),y,t,coeff_h, coeff_l)
+    draw_chart(target, int(np.polyval(polynom_ttd,point)*10000),y,t,coeff_h, coeff_l)
 
     #some edgecases to handle here, crazy timestamp values will run into error
     if point <= l:
-        print("Time of", target, "was achieved at", time.ctime(t[point]), "block", block_by_ttd(target*100000, int(b[point]), int(b[point]+1)))
+        print("Time of", target, "was achieved at", time.ctime(t[point]), "block", block_by_ttd(target*10000, int(b[point]), int(b[point]+1)))
     else:
-     
         print("Total Terminal Difficulty at time", time.ctime(target), "UTC is expected around value", int(np.polyval(polynom_ttd,point)))
+
+
+
+ap = argparse.ArgumentParser()
+ap.add_argument("--ttd", required=False,
+   help="Total terminal difficulty value to predict")
+
+ap.add_argument("--time", required=False,
+   help="Timestamp to predict")
+
+args = vars(ap.parse_args())
 
 
 if os.path.exists('result.csv'):
@@ -304,8 +346,6 @@ if os.path.exists('result.csv'):
     if ( ts_now - t[l]) > granuality:
         next_ts=(t[l]+granuality)
         start_block=block_by_time(next_ts, int(b[l]), latest_block)
-        estimate_hashrate(data)
-
         update(start_block, granuality, l+2)
     '''
 
@@ -332,7 +372,9 @@ else:
         file.write('Row,BlockNumber,TTD,Difficulty,UnixTimestamp\n')
 
     update(start, granuality, 1)
+    csv = pd.read_csv('./result.csv')
+    data = csv[['Row', 'BlockNumber', 'TTD', 'Difficulty', 'UnixTimestamp']]
+    b = data['BlockNumber']
+    t = data['UnixTimestamp']
 
-
-
-
+construct_polynom()
