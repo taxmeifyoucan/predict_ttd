@@ -285,7 +285,7 @@ def estimate_ttd(target, polynom_ttd, polynom_time, predict_err, predict_m):
             print("Around", dt.timedelta(seconds =timeleft), "left")    
         print("Total Terminal Difficulty of", int(args['ttd']), "is expected around", time.ctime(point), ", i.e. between", time.ctime(point1),"and", time.ctime(point2), "<p></p>")
         estimate_hashrate(data)
-        print("Current TTD is", currenttd,"and using latest data lineary, around", datetime.timedelta(seconds =int(timeleft)), "is left to achieve the target.")
+        print("Current total difficulty is", currenttd,"and using latest data lineary, around", datetime.timedelta(seconds =int(timeleft)), "is left to achieve the TTD target.")
 
 
 #Returns estimated TTD value at given timestamp
