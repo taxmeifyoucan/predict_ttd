@@ -1,9 +1,10 @@
 <template>
   <div>
-    <h2> Ropsten TTD predictions </h2>
-    <p><a href=https://github.com/taxmeifyoucan/predict_ttd/>Contribute and make your own prediction</a></p>
+    <h2> The Merge TTD prediction</h2>
+    <p><a href=https://github.com/taxmeifyoucan/predict_ttd/>Make your own prediction and contribute</a></p>
     <p>Total Terminal Difficulty of {{ target }}is expected around {{ msg }}</p>
-    <img src="../assets/chart.png" alt="">
+    <img src="../../../mainnet_merge/chart.png" alt="">
+    <img src="../../../mainnet_merge/hashrate.png" alt="">
 
   </div>
 </template>
