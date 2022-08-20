@@ -15,20 +15,19 @@ app.add_middleware(
 )
 
 
-if 'TTD_TARGET' in os.environ:
-	prediction=time.ctime(construct_polynom())
-	target=(int(os.environ['TTD_TARGET']))
 if 'TIME_TARGET' in os.environ:
-	prediction=time.ctime(construct_polynom())
 	target=(int(os.environ['TIME_TARGET']))
+	prediction=estimate_time(target)
 
-
+if 'TTD_TARGET' in os.environ:
+	target_ttd=(int(os.environ['TTD_TARGET']))
+	prediction=estimate_ttd(target_ttd)
+    
 
 @app.get("/prediction")
 async def predicted_value():
-    return prediction
-
+    return time.ctime(prediction)
 
 @app.get("/target")
 async def target_value():
-    return target
+    return target_ttd
