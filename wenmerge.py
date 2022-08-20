@@ -136,7 +136,7 @@ def update(blockn, step):
     ts=web3.eth.getBlock(blockn).timestamp
     latest_ts = web3.eth.get_block('latest')['timestamp']
 
-    block_step=int(np.average(np.diff(b)))
+    block_step=step/13
 
     while blockn < latest_block:
         ttd=int(web3.eth.getBlock(blockn).totalDifficulty / 10000 )
@@ -170,14 +170,13 @@ def estimate_hashrate(target, target_time):
     while i < l:
         i+=1
         d.append(int ((y[i]-y[i-1]) / (t[i]-t[i-1]))/1000000000000)
-    hash_coeff = np.poly1d(np.polyfit(t[1:l], d, 10))
 
+    hash_coeff = np.poly1d(np.polyfit(t[1:l], d, 10))
     conv=np.vectorize(dt.datetime.fromtimestamp) 
     dates=conv(t)
 
     ax=plt.gca()
     ax.clear() 
-
     plt.subplots_adjust(bottom=0.2)
     plt.xticks( rotation=25 )
     xfmt = md.DateFormatter('%Y-%m-%d')
@@ -282,7 +281,8 @@ def estimate_time(target):
 
     td=int(np.polyval(coeff_ttd, target)*10000)
 
-    draw_chart(target, td, coeff_h, coeff_l)
+    if not args['ttd']:
+        draw_chart(target, td, coeff_h, coeff_l)
 
     #some edgecases to handle here, crazy timestamp values will run into error
     if T('latest') > target:
