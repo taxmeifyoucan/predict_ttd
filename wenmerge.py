@@ -169,7 +169,7 @@ def estimate_hashrate(target, target_time):
     i=1
     while i < l:
         i+=1
-        d.append(int ((y[i]-y[i-1]) / (t[i]-t[i-1]))/1000000000000)
+        d.append(int ((y[i]-y[i-1]) / (t[i]-t[i-1]))/100000000)
 
     hash_coeff = np.poly1d(np.polyfit(t[1:l], d, 10))
     conv=np.vectorize(dt.datetime.fromtimestamp) 
@@ -185,7 +185,7 @@ def estimate_hashrate(target, target_time):
     ax.set_ylabel('TH/s')
     plt.scatter(dates[1:l], d) 
     plt.plot(dates[1:l], d) 
-    plt.plot(dates[1:l],hash_coeff(t[1:l]), color='red', linestyle='dashed')
+    plt.plot(dates,hash_coeff(t), color='red', linestyle='dashed')
     plt.savefig('hashrate.png', transparent=False, dpi=110)
     plt.clf()
     time_avg=int(np.average(np.diff(t)))
@@ -193,13 +193,13 @@ def estimate_hashrate(target, target_time):
     ttd_diff_avg=int(np.average(np.diff(y[n:])))
     time_diff_avg=int(np.average(np.diff(t[n:])))
 
-    hashrate=(ttd_diff_avg*10000/time_diff_avg/1000000000000)
+    hashrate=(ttd_diff_avg/time_diff_avg/100000000)
     print("Current daily hashrate: %.1f" % hashrate, "TH/s")
     hashrate_projection=time.ctime(int((target-current_ttd)/(ttd_diff_avg*10000/time_diff_avg))+time_now)
 
     for time_target in time_targets:
         hash_target=((target-current_ttd)/(time_target-time_now)/1000000000000)
-        print("To achieve TTD", target, "at", time.ctime(time_target),"UTC, around %.1f TH/s in the network is needed as of now." % hash_target)
+        print("To achieve TTD", target, "at", time.ctime(time_target),"around %.1f TH/s in the network is needed as of now." % hash_target)
 
     return hashrate, hashrate_projection
 
@@ -288,7 +288,7 @@ def estimate_time(target):
     if T('latest') > target:
         print("Time of", target, "was achieved at", time.ctime(t[target]), "block", block_by_ttd(target*10000, int(b[1]), int(b[l]+1)))
     else:
-        print("Total Terminal Difficulty at time", time.ctime(target), "UTC is expected around value", td)
+        print("Total Terminal Difficulty at time", time.ctime(target), "is expected around value", td)
         return td
 
 ap = argparse.ArgumentParser()
