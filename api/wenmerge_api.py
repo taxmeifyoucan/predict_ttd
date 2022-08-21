@@ -17,6 +17,7 @@ warnings.filterwarnings('ignore')
 #Choose web3 provider first, IPC is recommended 
 #web3 = Web3(Web3.IPCProvider("~/.ethereum/geth.ipc"))
 #web3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
+web3 = Web3(Web3.HTTPProvider("https://bordel.xyz"))
 
 T = lambda blockn: web3.eth.getBlock(blockn).timestamp
 TTD = lambda blockn: web3.eth.getBlock(blockn).totalDifficulty
@@ -91,46 +92,6 @@ def block_by_ttd(ttd, prev, next):
 
     return block_by_ttd(ttd, adjustment - r, adjustment + r)
 
-def draw_chart(target_t, target_y, poly_h, poly_l):
-   
-    ph = np.poly1d(poly_h)
-    pl = np.poly1d(poly_l)
-    p = np.poly1d(np.polyfit(t, y, degree))
-
-    tt = t[:]
-    timestamps=np.copy(tt)
-    time_diff_avg=int(np.average(np.diff(tt)))
-    i=(target_t-tt[int(len(tt)-1)])/time_diff_avg + int(len(tt))/10 
-    j=int(len(tt))
-
-    while i > 0:
-        tt[j]=tt[j-1]+time_diff_avg
-        j+=1
-        i-=1
-
-    conv=np.vectorize(dt.datetime.fromtimestamp) 
-    long_dates=conv(tt)
-    short_dates=conv(timestamps)
-    target_t=conv(target_t)
-    
-    plt.subplots_adjust(bottom=0.2)
-    plt.xticks( rotation=25 )
-    ax=plt.gca()
-    ax.minorticks_on()
-    xfmt = md.DateFormatter('%Y-%m-%d')
-    ax.xaxis.set_major_formatter(xfmt)
-    plt.title("Total Terminal Difficulty")
-    ax.set_ylabel('Accumulated difficulty')
-    ax.grid(True)
-    plt.plot(long_dates,p(tt), color='red', linestyle='dashed')
-    plt.plot(long_dates,ph(tt), color='purple', linestyle='dashed')
-    plt.plot(long_dates,pl(tt), color='purple', linestyle='dashed')
-    plt.plot(short_dates, y, linewidth=3.5, alpha=0.8) 
-    plt.plot(target_t,target_y/10000,'ro', color='green') 
-    
-    plt.savefig('chart.png', transparent=False, dpi=110)
-    #plt.show()
-
 # Updates data set with latest blocks
 def update(blockn, step):
     ts=web3.eth.getBlock(blockn).timestamp
@@ -160,6 +121,13 @@ def update(blockn, step):
 
 def estimate_hashrate(target, target_time):
 
+    csv = pd.read_csv('./result.csv')
+    data = csv[['BlockNumber', 'TTD', 'Difficulty', 'UnixTimestamp']]
+    y = data['TTD']
+    d = data ['Difficulty']
+    b = data['BlockNumber']
+    t = data['UnixTimestamp']   
+
     d=[]
     l=int(len(y))-1
 
@@ -175,19 +143,6 @@ def estimate_hashrate(target, target_time):
     conv=np.vectorize(dt.datetime.fromtimestamp) 
     dates=conv(t)
 
-    ax=plt.gca()
-    ax.clear() 
-    plt.subplots_adjust(bottom=0.2)
-    plt.xticks( rotation=25 )
-    xfmt = md.DateFormatter('%Y-%m-%d')
-    ax.xaxis.set_major_formatter(xfmt)
-    plt.title("Hashrate")
-    ax.set_ylabel('TH/s')
-    plt.scatter(dates[1:l], d) 
-    plt.plot(dates[1:l], d) 
-    plt.plot(dates,hash_coeff(t), color='red', linestyle='dashed')
-    plt.savefig('hashrate.png', transparent=False, dpi=110)
-    plt.clf()
     time_avg=int(np.average(np.diff(t)))
     n=int(len(y)-(86400/time_avg))
     ttd_diff_avg=int(np.average(np.diff(y[n:])))
@@ -238,6 +193,13 @@ def construct_errors(coeff_ttd):
 #Returns estimated time of given TTD value
 def estimate_ttd(target):
 
+    csv = pd.read_csv('./result.csv')
+    data = csv[['BlockNumber', 'TTD', 'Difficulty', 'UnixTimestamp']]
+    y = data['TTD']
+    d = data ['Difficulty']
+    b = data['BlockNumber']
+    t = data['UnixTimestamp']
+
     coeff_ttd = np.polyfit(t, y, degree)
     coeff_h, coeff_l=construct_errors(coeff_ttd)
     ttd_target=target/10000
@@ -268,21 +230,24 @@ def estimate_ttd(target):
         timeleft=(int(target)*10000-current_ttd)/(ttd_diff_avg*10000)*time_diff_avg
         if timeleft < 259200:
             print("Around", dt.timedelta(seconds =timeleft), "left")
-        draw_chart(point,target,coeff_h, coeff_l)
         print("Total Terminal Difficulty of", int(target), "is expected around", dt.datetime.utcfromtimestamp(point).strftime("%a %b %d %H:%M %Y"), ", i.e. between", dt.datetime.utcfromtimestamp(point_high).strftime("%a %b %d %H:%M %Y"),"UTC and", dt.datetime.utcfromtimestamp(point_low).strftime("%a %b %d %H:%M %Y"),"UTC")
 
-        return time.ctime(point)
+        return point
 
 #Returns estimated TTD value at given timestamp
 def estimate_time(target):
+
+    csv = pd.read_csv('./result.csv')
+    data = csv[['BlockNumber', 'TTD', 'Difficulty', 'UnixTimestamp']]
+    y = data['TTD']
+    d = data ['Difficulty']
+    b = data['BlockNumber']
+    t = data['UnixTimestamp']
 
     coeff_ttd = np.polyfit(t, y, degree)
     coeff_h, coeff_l=construct_errors(coeff_ttd)
 
     td=int(np.polyval(coeff_ttd, target)*10000)
-
-    if not args['ttd'] or int(args['ttd']) < TTD('latest'):
-        draw_chart(target, td, coeff_h, coeff_l)
 
     #some edgecases to handle here, crazy timestamp values will run into error
     if T('latest') > target:
@@ -292,15 +257,6 @@ def estimate_time(target):
     else:
         print("Total Terminal Difficulty at time", dt.datetime.utcfromtimestamp(target).strftime("%a %b %d %H:%M %Y"), "is expected around value", td)
         return td
-
-ap = argparse.ArgumentParser()
-ap.add_argument("--ttd", required=False,
-   help="Total terminal difficulty value to predict")
-
-ap.add_argument("--time", required=False,
-   help="Timestamp to predict")
-
-args = vars(ap.parse_args())
 
 
 if os.path.exists('result.csv'):
@@ -331,15 +287,4 @@ d = data ['Difficulty']
 b = data['BlockNumber']
 t = data['UnixTimestamp']
 
-
-if args['ttd']:
-    target = int(args['ttd'])
-    estimate_ttd(target)
-
-if args['time']:
-    target_time = int(args['time'])
-    estimate_time(target_time)
-
-if args['time'] and args['ttd'] and (target > TTD('latest')) and (target_time > T('latest')):
-    estimate_hashrate(int(args['ttd']),int(args['time']))
 

@@ -1,46 +1,70 @@
 # Predicting TTD 
 
-Total Terminal Difficulty is an accumulated sum of miner work done at each block. [The Merge](https://ethereum.org/en/upgrades/merge/) will happen with certain value of TTD. This tool makes it easier to predict when network reaches certain TTD. 
+This repository contains tooling and data for estimating TTD values in Ethereum network. The main purpose is to craft TTD value and track it before The Merge. Current results are published at https://bordel.wtf.
 
-Checkout article on TTD prediction to get a better understanding of this repo: https://notes.ethereum.org/@MarioHavel/predicting_ttd
+Total Terminal Difficulty is an accumulated sum of miner work done at each block. [The Merge](https://ethereum.org/en/upgrades/merge/) will happen when a certain value TTD value is reached. This tool makes it easier to predict when network reaches given TTD. It was used to calculated TTDs for Merges in various networks including mainnet. Data can be found in corresponding directories. 
 
-Still WIP, precision might be improved, edge cases handled and frontend for presenting prediction to wider community can be created based on this. Program collects data on accumulated difficulty with precise points in time and naively estimates future TTD with linear regression. Keep in mind that further in the future your prediction is, the bigger error there will be. 
+Program for predicting the value collects data on accumulated difficulty with precise points in time and naively estimates future TTD using linear/polynomial regression. Keep in mind that further in the future your prediction is, the bigger error there will be. 
 
-## Usage
+Deeper explanation of technical strategy of TD prediction used by this tool can be found in [this post](https://ethresear.ch/t/predicting-ttd-on-ethereum/12742). 
 
-You need Python3 and pip, first install requirements:
+## Usage 
+
+The repository includes various python scripts. Each needs to connet to some Ethereum network and requires web3 provider, an RPC endpoint. Make sure to set yours on top of file you are going to run. 
+
+To use these scripts, you need Python3.7+ and pip to install requirements:
+
 ```
 pip3 install -r requirements.txt
 ```
 
-Before running the script, set your web3 provider on the top of `wenmerge.py`. Repo comes with some collected data, roughly 4 weeks in the past with 30 min step. It gets updated when you run the script to create the latest prediction. 
+### Predicting TTD
 
-You can set values for starting block and step, delete `result.csv` to collect your own data set. Local node IPC is recommended for this step because the initial data collection can take a while. 
+The main prediction tools is `wenmerge.py`.
 
-There are two ways to run the prediction script. You can either just print the predicted data or serve it as API. 
+When there is no present `result.csv` file with collected data from the network, it starts to collect data 4 weeks in the past with 2 hours step. You can set values for starting time and step. To collect your own data set. Local node IPC is recommended for this step because the initial data collection can take a while. 
 
-For simply printing the prediction and saving created charts to local folder, you can configure it with cli flags:
+Some already created data for prediction can be found in corresponding directories. Data are updated when you run the script to create the latest prediction. 
 
-```
-python3 wenmerge.py --ttd 60000000000000000000000 --time 1663596000
-```
-
-Other option is to serve predicted data as API for frontend. App will run continuously and update the data. To configure values to predict, put them into he `.env` file. Then run the script via API:
+To just collect the data, you can run the script without any flags. To define values to predict, use arguments as in example below. `--ttd` creates a prediction of when is given total difficulty going to be achieved and `--time` estimates total difficulty value at given timestamp. If both flags are supplied, script also calculates current hashrate and estimates how much hashrate is needed to achieve given TTD at given timestamp. 
 
 ```
-uvicorn api:app --reload --host 0.0.0.0 --port 5000
+python3 wenmerge.py --ttd 58750000000000000000000 --time 1663243200
 ```
-
-The API is served on `localhost:5000/prediction`. Vue.js frontend whhich reads and creates a page with the data can be found in `frontend` directory. 
 
 Here is an example of terminal output: 
 
 ```
-Updating data at block 14680227 #gets the latest data from the network 
-Around 05d18h19m49s left 
+Updating data at block 15385601
 
-Total Terminal Difficulty of 4.805e+17 is expected around  Wed May 4 21:26:52 2022 i.e. between Wed May 4 21:03:08 2022 and Wed May 4 22:38:05 2022
+Total Terminal Difficulty of 58750000000000000000000 is expected around Thu Sep 15 04:09:42 2022 , i.e. between Thu Sep 15 05:16:44 2022 and Thu Sep 15 03:02:47 2022
+Total Terminal Difficulty at time Thu Sep 15 14:00:00 2022 UTC is expected around value 58781255664353442529280
+Current daily hashrate: 864.5 TH/s
+To achieve TTD 58750000000000000000000 at Thu Sep 15 14:00:00 2022 UTC, around 870.0 TH/s in the network is needed as of now.
 ```
 
-If you get it succesfully running and then run into error, just restart and you will get the right result. 
+It also plots charts of predicted total difficulty and current hashrate. To examine them closely, you can uncomment `plt.show()` and they will be displayed when the program is run.
 
+If the prediction gets stuck, try using a lower degree of polynomial or collecting a new dataset. 
+
+Predicted values can also be served as an API and displayed on a web page, check [api](/api) for details. 
+
+### Estimating hashrate
+
+Two other scripts you can find here are dedicated to estimating hashrate values. 
+
+`ttd_hashrate.py` creates an estimation of how much hashrate is needed to achieve a given TTD during a given time span and specific dates (predefined to September 2022). It calculates the hashrate in TH/s needed to reach the total difficulty value in a given time and compares it to the current hashrate. Charts visualizing the hashrate and the percent change are also printed. You can easily see when the current hashrate reaches the total difficulty and when it would be reached if it drops. 
+
+Use the TTD value as an argument.
+
+```
+python3 hashrate_ttd.py --ttd  58750000000000000000000
+
+To achieve TTD 58750000000000000000000 at Thu Sep 15 12:00:00 2022 UTC, around 869.93 TH/s in the network is needed as of now.
+That is around 0 % change from current hashrate
+To achieve TTD 58750000000000000000000 at Thu Sep 22 12:00:00 2022 UTC, around 676.97 TH/s in the network is needed as of now.
+That is around 22 % change from current hashrate
+
+```
+
+`latest_hashrate.py` calculates hashrate over past n blocks, by default 5000. It runs continuously and updates the hashrate with the latest blocks. This is especially useful with a high volatility hashrate in testnets. 

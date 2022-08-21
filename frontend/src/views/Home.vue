@@ -3,8 +3,8 @@
     <h2> The Merge TTD prediction</h2>
     <p><a href=https://github.com/taxmeifyoucan/predict_ttd/>Make your own prediction and contribute</a></p>
     <p>Total Terminal Difficulty of {{ target }}is expected around {{ msg }}</p>
-    <img src="../../../mainnet_merge/chart.png" alt="">
-    <img src="../../../mainnet_merge/hashrate.png" alt="">
+    <img src="../../../api/chart.png" alt="">
+    <img src="../../../api/hashrate.png" alt="">
 
   </div>
 </template>
@@ -22,7 +22,7 @@ export default {
   },
   methods: {
     getPredict() {
-      axios.get('/prediction')
+      axios.get('/ttd_prediction')
         .then((res) => {
           this.msg = res.data;
         })
@@ -31,7 +31,7 @@ export default {
         });
     },
     getTarget() {
-      axios.get('/target')
+      axios.get('/ttd_target')
         .then((res) => {
           this.target = res.data;
         })
