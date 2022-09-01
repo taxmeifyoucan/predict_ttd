@@ -8,6 +8,7 @@ import matplotlib.dates as md
 from web3 import Web3
 import datetime as dt
 import argparse 
+import time
 
 
 #Connect to web3 provider
@@ -25,7 +26,7 @@ def estimate_hashrate(target):
     time_targets=[1662033600, 1662638400, 1663243200, 1663848000, 1664539200, 1665144000]
 
     #September 
-    start=1661983200
+    start=max(1661983200, int(time.time()))
     end=1664748000
 
     t=[]
