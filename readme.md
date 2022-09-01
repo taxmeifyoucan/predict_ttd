@@ -2,7 +2,7 @@
 
 This repository contains tooling and data for estimating TTD values in Ethereum network. The main purpose is to craft TTD value and track it before The Merge. Current results are published at https://bordel.wtf.
 
-Total Terminal Difficulty is an accumulated sum of miner work done at each block. [The Merge](https://ethereum.org/en/upgrades/merge/) will happen when a certain value TTD value is reached. This tool makes it easier to predict when network reaches given TTD. It was used to calculated TTDs for Merges in various networks including mainnet. Data can be found in corresponding directories. 
+Terminal Total Difficulty is an accumulated sum of miner work done at each block. [The Merge](https://ethereum.org/en/upgrades/merge/) will happen when a certain value TTD value is reached. This tool makes it easier to predict when network reaches given TTD. It was used to calculated TTDs for Merges in various networks including mainnet. Data can be found in corresponding directories. 
 
 Program for predicting the value collects data on accumulated difficulty with precise points in time and naively estimates future TTD using linear/polynomial regression. Keep in mind that further in the future your prediction is, the bigger error there will be. 
 
@@ -37,8 +37,8 @@ Here is an example of terminal output:
 ```
 Updating data at block 15385601
 
-Total Terminal Difficulty of 58750000000000000000000 is expected around Thu Sep 15 04:09:42 2022 , i.e. between Thu Sep 15 05:16:44 2022 and Thu Sep 15 03:02:47 2022
-Total Terminal Difficulty at time Thu Sep 15 14:00:00 2022 UTC is expected around value 58781255664353442529280
+Terminal Total Difficulty of 58750000000000000000000 is expected around Thu Sep 15 04:09:42 2022 , i.e. between Thu Sep 15 05:16:44 2022 and Thu Sep 15 03:02:47 2022
+Terminal Total Difficulty at time Thu Sep 15 14:00:00 2022 UTC is expected around value 58781255664353442529280
 Current daily hashrate: 864.5 TH/s
 To achieve TTD 58750000000000000000000 at Thu Sep 15 14:00:00 2022 UTC, around 870.0 TH/s in the network is needed as of now.
 ```

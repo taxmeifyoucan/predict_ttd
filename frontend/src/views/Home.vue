@@ -2,7 +2,7 @@
   <div>
     <h2> The Merge TTD prediction</h2>
     <p><a href=https://github.com/taxmeifyoucan/predict_ttd/>Make your own prediction and contribute</a></p>
-    <p>Total Terminal Difficulty of {{ target }}is expected around {{ msg }}</p>
+    <p>Terminal Total Difficulty of {{ target }}is expected around {{ msg }}</p>
     <img src="../../../api/chart.png" alt="">
     <img src="../../../api/hashrate.png" alt="">
 

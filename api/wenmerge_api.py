@@ -230,7 +230,7 @@ def estimate_ttd(target):
         timeleft=(int(target)*10000-current_ttd)/(ttd_diff_avg*10000)*time_diff_avg
         if timeleft < 259200:
             print("Around", dt.timedelta(seconds =timeleft), "left")
-        print("Total Terminal Difficulty of", int(target), "is expected around", dt.datetime.utcfromtimestamp(point).strftime("%a %b %d %H:%M %Y"), ", i.e. between", dt.datetime.utcfromtimestamp(point_high).strftime("%a %b %d %H:%M %Y"),"UTC and", dt.datetime.utcfromtimestamp(point_low).strftime("%a %b %d %H:%M %Y"),"UTC")
+        print("Terminal Total Difficulty of", int(target), "is expected around", dt.datetime.utcfromtimestamp(point).strftime("%a %b %d %H:%M %Y"), ", i.e. between", dt.datetime.utcfromtimestamp(point_high).strftime("%a %b %d %H:%M %Y"),"UTC and", dt.datetime.utcfromtimestamp(point_low).strftime("%a %b %d %H:%M %Y"),"UTC")
 
         return point
 
@@ -255,7 +255,7 @@ def estimate_time(target):
         print("Time of",  time.ctime(target), "was reached at block", rt)
         return rt
     else:
-        print("Total Terminal Difficulty at time", dt.datetime.utcfromtimestamp(target).strftime("%a %b %d %H:%M %Y"), "is expected around value", td)
+        print("Total Difficulty at time", dt.datetime.utcfromtimestamp(target).strftime("%a %b %d %H:%M %Y"), "is expected around value", td)
         return td
 
 

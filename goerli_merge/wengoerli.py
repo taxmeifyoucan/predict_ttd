@@ -243,7 +243,7 @@ def estimate_ttd(target, polynom_ttd, polynom_time, predict_err, predict_m):
         timeleft=(int(target)*1-currenttd)/(ttd_diff_avg*1)*time_diff_avg 
         if timeleft < 10000:
           print("Current TTD is", currenttd,"and using latest data lineary, around", datetime.timedelta(seconds =int(timeleft)), "is left to achieve the target.")
-        print("Total Terminal Difficulty of", int(args['ttd']), "is expected around", time.ctime(point), ", i.e. between", time.ctime(point1),"and", time.ctime(point2), "<p></p>")
+        print("Terminal Total Difficulty of", int(args['ttd']), "is expected around", time.ctime(point), ", i.e. between", time.ctime(point1),"and", time.ctime(point2), "<p></p>")
 
 
 #Returns estimated TTD value at given timestamp
@@ -256,14 +256,12 @@ def estimate_time(target, polynom_ttd ):
     if point <= l:
         print("Time of", target, "was achieved at", time.ctime(t[point]), "block", block_by_ttd(target*1, int(b[point]), int(b[point]+1)))
     else:
-     
-#        print("Total Terminal Difficulty at time", time.ctime(target), "UTC is expected around value", int(np.polyval(polynom_ttd,point))*1)
         return int(np.polyval(polynom_ttd,point))*1
 
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--ttd", required=False,
-   help="Total terminal difficulty value to predict")
+   help="TTTTD difficulty value to predict")
 
 ap.add_argument("--time", required=False,
    help="Timestamp to predict")

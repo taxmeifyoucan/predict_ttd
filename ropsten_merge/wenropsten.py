@@ -283,7 +283,7 @@ def estimate_ttd(target, polynom_ttd, polynom_time, predict_err, predict_m):
         timeleft=(int(target)*100000-currenttd)/(ttd_diff_avg*100000)*time_diff_avg 
         if timeleft < 10000:
             print("Around", dt.timedelta(seconds =timeleft), "left")    
-        print("Total Terminal Difficulty of", int(args['ttd']), "is expected around", time.ctime(point), ", i.e. between", time.ctime(point1),"and", time.ctime(point2), "<p></p>")
+        print("Terminal Total  Difficulty of", int(args['ttd']), "is expected around", time.ctime(point), ", i.e. between", time.ctime(point1),"and", time.ctime(point2), "<p></p>")
         estimate_hashrate(data)
         print("Current total difficulty is", currenttd,"and using latest data lineary, around", datetime.timedelta(seconds =int(timeleft)), "is left to achieve the TTD target.")
 
@@ -300,12 +300,12 @@ def estimate_time(target, polynom_ttd, polynom_time, predict_err, predict_m):
         print("Time of", target, "was achieved at", time.ctime(t[point]), "block", block_by_ttd(target*100000, int(b[point]), int(b[point]+1)))
     else:
      
-        print("Total Terminal Difficulty at time", time.ctime(target), "UTC is expected around value", int(np.polyval(polynom_ttd,point))*100000)
+        print("Terminal Total  Difficulty at time", time.ctime(target), "UTC is expected around value", int(np.polyval(polynom_ttd,point))*100000)
 
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--ttd", required=False,
-   help="Total terminal difficulty value to predict")
+   help="TTD difficulty value to predict")
 
 ap.add_argument("--time", required=False,
    help="Timestamp to predict")

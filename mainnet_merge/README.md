@@ -15,8 +15,8 @@ Current prediction fits proposed value:
 ![](./chart.png)
 
 ```
-Total Terminal Difficulty of 58750000000000000000000 is expected around Thu Sep 15 04:14 UTC 2022, i.e. between Thu Sep 14 05:24 UTC 2022 and Thu Sep 16 03:04 UTC 2022
-Total Terminal Difficulty at time Thu Sep 15 12:00:00 2022 UTC is expected around value 58781002179534517174272
+Terminal Total Difficulty of 58750000000000000000000 is expected around Thu Sep 15 04:14 UTC 2022, i.e. between Thu Sep 14 05:24 UTC 2022 and Thu Sep 16 03:04 UTC 2022
+Terminal Total Difficulty at time Thu Sep 15 12:00:00 2022 UTC is expected around value 58781002179534517174272
 Current daily hashrate: 863.7 TH/s
 To achieve TTD 58750000000000000000000 at Thu Sep 15 12:00:00 2022 UTC, around 869.9 TH/s in the network is needed as of now.
 ```

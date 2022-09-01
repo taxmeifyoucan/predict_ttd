@@ -84,7 +84,7 @@ def estimate_hashrate(target):
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--ttd", required=True,
-   help="Total terminal difficulty value to estimate")
+   help="TTD value to estimate")
 
 args = vars(ap.parse_args())
 

@@ -285,8 +285,7 @@ def estimate_ttd(target, polynom_ttd, polynom_time, predict_err, predict_m):
     else:
         timeleft=(int(target)*100000-currenttd)/(ttd_diff_avg*100000)*time_diff_avg 
         if timeleft < 10000:
-          print("Current TTD is", currenttd,"and using latest data lineary, around", datetime.timedelta(seconds =int(timeleft)), "is left to achieve the target.")
-      #  print("Total Terminal Difficulty of", int(args['ttd']), "is expected around", time.ctime(point), ", i.e. between", time.ctime(point1),"and", time.ctime(point2), "<p></p>")
+          print("Current TD is", currenttd,"and using latest data lineary, around", datetime.timedelta(seconds =int(timeleft)), "is left to achieve the target.")
         estimate_hashrate(data)
 
 
@@ -301,13 +300,12 @@ def estimate_time(target, polynom_ttd ):
         print("Time of", target, "was achieved at", time.ctime(t[point]), "block", block_by_ttd(target*100000, int(b[point]), int(b[point]+1)))
     else:
      
-#        print("Total Terminal Difficulty at time", time.ctime(target), "UTC is expected around value", int(np.polyval(polynom_ttd,point))*100000)
         return int(np.polyval(polynom_ttd,point))*100000
 
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--ttd", required=False,
-   help="Total terminal difficulty value to predict")
+   help="TTD value to predict")
 
 ap.add_argument("--time", required=False,
    help="Timestamp to predict")

@@ -119,7 +119,7 @@ def draw_chart(target_t, target_y, poly_h, poly_l):
     ax.minorticks_on()
     xfmt = md.DateFormatter('%Y-%m-%d')
     ax.xaxis.set_major_formatter(xfmt)
-    plt.title("Total Terminal Difficulty")
+    plt.title("Terminal Total Difficulty")
     ax.set_ylabel('Accumulated difficulty')
     ax.grid(True)
     plt.plot(long_dates,p(tt), color='red', linestyle='dashed')
@@ -269,7 +269,7 @@ def estimate_ttd(target):
         if timeleft < 259200:
             print("Around", dt.timedelta(seconds =timeleft), "left")
         draw_chart(point,target,coeff_h, coeff_l)
-        print("Total Terminal Difficulty of", int(target), "is expected around", dt.datetime.utcfromtimestamp(point).strftime("%a %b %d %H:%M %Y"), ", i.e. between", dt.datetime.utcfromtimestamp(point_high).strftime("%a %b %d %H:%M %Y"),"UTC and", dt.datetime.utcfromtimestamp(point_low).strftime("%a %b %d %H:%M %Y"),"UTC")
+        print("Terminal Total Difficulty of", int(target), "is expected around", dt.datetime.utcfromtimestamp(point).strftime("%a %b %d %H:%M %Y"), ", i.e. between", dt.datetime.utcfromtimestamp(point_high).strftime("%a %b %d %H:%M %Y"),"UTC and", dt.datetime.utcfromtimestamp(point_low).strftime("%a %b %d %H:%M %Y"),"UTC")
 
         return time.ctime(point)
 
@@ -290,12 +290,12 @@ def estimate_time(target):
         print("Time of",  time.ctime(target), "was reached at block", rt)
         return rt
     else:
-        print("Total Terminal Difficulty at time", dt.datetime.utcfromtimestamp(target).strftime("%a %b %d %H:%M %Y"), "is expected around value", td)
+        print("Total Difficulty at time", dt.datetime.utcfromtimestamp(target).strftime("%a %b %d %H:%M %Y"), "is expected around value", td)
         return td
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--ttd", required=False,
-   help="Total terminal difficulty value to predict")
+   help="Terminal Total Difficulty value to predict")
 
 ap.add_argument("--time", required=False,
    help="Timestamp to predict")
