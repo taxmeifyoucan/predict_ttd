@@ -22,12 +22,12 @@ def estimate_hashrate(target):
 
     current_ttd = web3.eth.get_block('latest')['totalDifficulty']
     time_now=web3.eth.get_block('latest')['timestamp']
-    hashrate=((TTD("latest")-TTD(latest_block-6450))/(T("latest")-T(latest_block-6450))/1000000000000) #hashrate in roughly past day
-    time_targets=[1662033600, 1662638400, 1663243200, 1663848000, 1664539200, 1665144000]
+    hashrate=((TTD("latest")-TTD(latest_block-6450))/(T("latest")-T(latest_block-6200))/1000000000000) #hashrate in roughly past day
+    time_targets=[1663149600, 1663236000, 1663322400, 1663848000, 1664539200]
+    hashrate_projection=int((target-current_ttd)/(hashrate*1000000000000))+time_now
 
-    #September 
-    start=max(1661983200, int(time.time()))
-    end=1664748000
+    start=max(hashrate_projection-86400, int(time.time())+43200)
+    end=hashrate_projection+172800
 
     t=[]
     t.append(start)
@@ -60,7 +60,7 @@ def estimate_hashrate(target):
     plt.axhline(y = 0, color = 'r', linestyle = 'dashed')
     plt.savefig('percent_delta.png')
     ax.grid(True)
-    plt.show()
+   # plt.show()
     plt.clf()
     ax.clear()
 
@@ -73,6 +73,8 @@ def estimate_hashrate(target):
     ax.set_ylabel('TH/s')
     plt.plot(dates, h)
     plt.axhline(y = hashrate, color = 'r', linestyle = 'dashed')
+    plt.plot(conv(hashrate_projection), hashrate, 'ro', color='green') 
+
     ax.grid(True)
     plt.savefig('hashrate_delta.png')
     plt.show()
