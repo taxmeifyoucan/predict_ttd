@@ -256,6 +256,11 @@ def estimate_ttd(target):
     point_low=int(min(np.roots(substitute)))
 
     #Calculated averages from data
+    time_avg=int(np.average(np.diff(t)))
+    n=int(len(y)-(21600/time_avg))
+    ttd_diff_avg=int(np.average(np.diff(y[n:])))
+    time_diff_avg=int(np.average(np.diff(t[n:])))
+    
     ttd_diff_avg=int(np.average(np.diff(y)))
     time_diff_avg=int(np.average(np.diff(t)))
     current_ttd = web3.eth.get_block('latest')['totalDifficulty']
