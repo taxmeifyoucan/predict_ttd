@@ -23,8 +23,8 @@ TTD = lambda blockn: web3.eth.getBlock(blockn).totalDifficulty
 latest_block = web3.eth.get_block('latest')['number']
 
 #If result.csv is not present, data will be collected since this start block and with given granuality 
-begin=2419200 #First data point starts this long before, 2419200 seconds = 4 weeks ago
-granuality=7200 #Step between data points
+begin=1209600 #First data point starts this long before, 1209600 seconds = 2 weeks ago
+granuality=28800 #Step between data points
 degree=1 #Degree of polynomials
 tolerance = counter = 1
 
