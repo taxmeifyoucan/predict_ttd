@@ -267,7 +267,7 @@ def estimate_ttd(target):
     else:
         timeleft=(int(target)-current_ttd)/(ttd_diff_avg*10000)*time_diff_avg
         if timeleft < 259200:
-            print("Current total difficulty is", current_ttd,"and", dt.timedelta(seconds =timeleft), "is left to achieve the target.")
+            print("Current total difficulty is", current_ttd,"and", dt.timedelta(seconds =int(timeleft)), "is left to achieve the target.")
 
         draw_chart(point,target,coeff_h, coeff_l)
         print("Terminal Total Difficulty of", int(target), "is expected around", dt.datetime.utcfromtimestamp(point).strftime("%a %b %d %H:%M %Y"), ", i.e. between", dt.datetime.utcfromtimestamp(point_high).strftime("%a %b %d %H:%M %Y"),"UTC and", dt.datetime.utcfromtimestamp(point_low).strftime("%a %b %d %H:%M %Y"),"UTC")
