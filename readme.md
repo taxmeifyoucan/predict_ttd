@@ -6,7 +6,7 @@ Terminal Total Difficulty is an accumulated sum of miner work done at each block
 
 Program for predicting the value collects data on accumulated difficulty with precise points in time and naively estimates future TTD using linear/polynomial regression. Keep in mind that further in the future your prediction is, the bigger error there will be. 
 
-Deeper explanation of technical strategy of TD prediction used by this tool can be found in [this post](https://ethresear.ch/t/predicting-ttd-on-ethereum/12742). 
+Deeper explanation of the technical strategy behind TD prediction used by this tool can be found in [this post](https://ethresear.ch/t/predicting-ttd-on-ethereum/12742). Mainnet TTD was proposed in [this document](https://notes.ethereum.org/@MarioHavel/merge-ttd) and presented at [CL call #93](https://www.youtube.com/watch?v=CIAGQMUKEZ4).
 
 ## Usage 
 
