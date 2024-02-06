@@ -1,4 +1,4 @@
-fastapi==0.68.0
+fastapi==0.109.1
 uvicorn==0.14.0
 matplotlib==3.5.1
 numpy>=1.21
